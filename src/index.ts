@@ -1,11 +1,15 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response } from "express";
+import { POIRouter } from "./controllers/poi.controller";
 
 const app = express();
+const PORT = 3000;
 
-app.get('/', (req: Request, res: Response) => {
-    res.send("Hello World!");
+app.use(express.json());
+
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World!");
 });
 
-app.listen(3000, () => {
-    console.log("Server started on port 3000");
-})
+app.listen(PORT, () => {
+  console.log("Server started on port 3000");
+});
