@@ -1,3 +1,0 @@
-const g = () => {
-    "Hello world"
-}
