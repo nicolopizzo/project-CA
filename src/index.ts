@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { POIRouter } from "./controllers/poi.controller";
+import { AuthRouter } from "./controllers/auth.controller";
 
 const app = express();
 const PORT = 3000;
