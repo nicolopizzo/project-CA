@@ -1,16 +1,20 @@
-import express, { Request, Response } from "express";
-import { POIRouter } from "./controllers/poi.controller";
-import { AuthRouter } from "./controllers/auth.controller";
+import express, { Request, Response } from 'express';
+import { POIRouter } from './controllers/poi.controller';
+import { AuthRouter } from './controllers/auth.controller';
+import 'reflect-metadata';
+import { AppDataSource } from './datasource';
 
-const app = express();
-const PORT = 3000;
+const main = async () => {
+  const app = express();
+  const PORT = 3000;
 
-app.use(express.json());
+  app.use(express.json());
+  await AppDataSource.initialize();
+  app.use('/poi', POIRouter);
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
-});
+  app.listen(PORT, () => {
+    console.log('Server started on port 3000');
+  });
+};
 
-app.listen(PORT, () => {
-  console.log("Server started on port 3000");
-});
+main();
