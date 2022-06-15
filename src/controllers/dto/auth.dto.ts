@@ -1,9 +1,17 @@
-import { User } from '../../models/user.model';
-
-export class AuthRequest {
-  user: User;
+export class LoginRequest {
+  username: string;
+  password: string;
 }
 
-export class AuthResponse {
-  signed: boolean[];
+export class LoginResponse {
+  msg: string;
+}
+
+export class SignupRequest {
+  username: string;
+  password: string;
+}
+
+export class SignupResponse {
+  msg: string;
 }

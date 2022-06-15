@@ -10,7 +10,9 @@ const main = async () => {
 
   app.use(express.json());
   await AppDataSource.initialize();
+
   app.use('/poi', POIRouter);
+  app.use('/auth', AuthRouter);
 
   app.listen(PORT, () => {
     console.log('Server started on port 3000');
