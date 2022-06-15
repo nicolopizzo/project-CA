@@ -2,12 +2,27 @@ import { POI } from '../../models/poi.model';
 import { Position } from '../../models/position.model';
 
 export class POIRequest {
-  position: Position;
   minRank: number;
   type: string;
-  privacySettings: any;
+  positions: Position[];
+}
+
+export class CreatePOIRequest {
+  rank: number;
+  type: string;
+  position: Position;
+  id: string;
 }
 
 export class POIResponse {
-  pois: POI[];
+  items: POIItem[];
+}
+
+export class POIItem {
+  position: Position;
+  poi: POI;
+}
+
+export class UpdatePOIRequest {
+  rank: number;
 }
