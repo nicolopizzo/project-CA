@@ -7,7 +7,7 @@ router.get('/cloaking', async (req: Request, res: Response) => {
   const info = req.body;
   const { positions } = info;
 
-  const clusters = await privacyService.elbowMethod(positions);
+  const clusters = privacyService.spatialCloaking(positions);
   res.status(200).send(clusters);
 });
 

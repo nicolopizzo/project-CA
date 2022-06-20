@@ -6,7 +6,14 @@ interface Cluster {
 }
 
 class PrivacyService {
-  async elbowMethod(positions: Position[]): Promise<Cluster[]> {
+  spatialCloaking(positions: Position[]) {
+    const clusters = this.elbowMethod(positions);
+    return clusters.map((c) => ({
+      centroid: c.centroid,
+      data: c.data.length,
+    }));
+  }
+  elbowMethod(positions: Position[]): Cluster[] {
     const maxK = 10;
     const minK = 2;
 
