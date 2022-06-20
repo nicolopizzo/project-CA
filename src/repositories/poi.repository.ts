@@ -1,33 +1,24 @@
 import { POI } from '../models/poi.model';
 
 const db: POI[] = [
-  {
-    id: 'Osteria San P',
-    position: {
-      latitude: 45.4654,
-      longitude: 9.1854,
+	{
+      id: "Tamburini",
+      position: {latitude: 44.4937354, longitude: 11.3454177},
+      type: "restaurant",
+      rank: 7.8,
     },
-    type: 'restaurant',
-    rank: 6.7,
-  },
-  {
-    id: 'Osteria San Pargiollo',
-    position: {
-      latitude: 44.652,
-      longitude: 11.423,
+    {
+      id: "Giardini Margherita",
+      position: {latitude: 44.4822181, longitude: 11.3526779},
+      type: "green",
+      rank: 6.5,
     },
-    type: 'restaurant',
-    rank: 6.7,
-  },
-  {
-    id: 'Osteria San Popo',
-    position: {
-      latitude: 44.658,
-      longitude: 11.1254,
+    {
+      id: "Piazza Maggiore",
+      position: {latitude: 44.49364306741059, longitude: 11.3429425701172},
+      type: "green",
+      rank: 8.9,
     },
-    type: 'restaurant',
-    rank: 2.3,
-  },
 ];
 
 class POIRepository {
