@@ -1,4 +1,6 @@
 import { DataSource } from 'typeorm';
+import { POI } from './models/poi.model';
+import { User } from './models/user.model';
 
 export const AppDataSource = new DataSource({
   database: 'test_poi',
@@ -9,5 +11,6 @@ export const AppDataSource = new DataSource({
   password: 'test',
   synchronize: true,
   // logging: false,
-  // entities: [POI, Position],
+  entities: [POI, User],
+  // dropSchema: true,
 });

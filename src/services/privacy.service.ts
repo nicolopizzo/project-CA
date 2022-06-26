@@ -1,19 +1,19 @@
-import { Position } from '../models/position.model';
+import { IPosition } from '../models/position.model';
 
 interface Cluster {
-  data: Position[];
-  centroid: Position;
+  data: IPosition[];
+  centroid: IPosition;
 }
 
 class PrivacyService {
-  spatialCloaking(positions: Position[]) {
+  spatialCloaking(positions: IPosition[]) {
     const clusters = this.elbowMethod(positions);
     return clusters.map((c) => ({
       centroid: c.centroid,
       data: c.data.length,
     }));
   }
-  elbowMethod(positions: Position[]): Cluster[] {
+  elbowMethod(positions: IPosition[]): Cluster[] {
     const maxK = 10;
     const minK = 2;
 
@@ -48,7 +48,7 @@ class PrivacyService {
     return res;
   }
 
-  kMeansWithError(positions: Position[], k: number) {
+  kMeansWithError(positions: IPosition[], k: number) {
     const maxError = 0.3;
     let clusters = this.kMeans(positions, k);
 
@@ -69,7 +69,7 @@ class PrivacyService {
     return clusters;
   }
 
-  kMeans(positions: Position[], k: number): Cluster[] {
+  kMeans(positions: IPosition[], k: number): Cluster[] {
     let clusters: Cluster[] = [];
     let root = Array(positions.length).fill(0);
 
@@ -124,7 +124,7 @@ class PrivacyService {
     return clusters;
   }
 
-  centroid(cluster: Cluster): Position {
+  centroid(cluster: Cluster): IPosition {
     const { data } = cluster;
     const { latitude, longitude } = data.reduce(
       (acc, curr) => {
@@ -141,7 +141,7 @@ class PrivacyService {
     };
   }
 
-  closest(point: Position, clusters: Cluster[]): Cluster {
+  closest(point: IPosition, clusters: Cluster[]): Cluster {
     let minDistance = Number.MAX_VALUE;
     let closestCluster: Cluster = clusters[0];
 
@@ -156,7 +156,7 @@ class PrivacyService {
     return closestCluster;
   }
 
-  distance(p1: Position, p2: Position): number {
+  distance(p1: IPosition, p2: IPosition): number {
     //haversine distance
 
     const R = 6371; // Radius of the earth in km

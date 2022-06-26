@@ -1,28 +1,36 @@
-import { POI } from '../../models/poi.model';
-import { Position } from '../../models/position.model';
+import { Point } from 'geojson';
+import { POI, POIType } from '../../models/poi.model';
+import { IPosition } from '../../models/position.model';
 
-export class POIRequest {
+export class OptimalPOIRequestDTO {
   minRank: number;
-  type: string;
-  positions: Position[];
+  type: POIType;
+  positions: IPosition[];
 }
 
-export class CreatePOIRequest {
+export class CreatePOIRequestDTO {
   rank: number;
-  type: string;
-  position: Position;
-  id: string;
+  type: POIType;
+  position: IPosition;
+  name: string;
 }
 
-export class POIResponse {
-  items: POIItem[];
+export class CreatePOIDto {
+  rank: number;
+  type: POIType;
+  position: Point;
+  name: string;
 }
 
-export class POIItem {
-  position: Position;
+export class POIResponseDTO {
+  items: POIItemDTO[];
+}
+
+export class POIItemDTO {
+  position: IPosition;
   poi: POI;
 }
 
-export class UpdatePOIRequest {
+export class UpdatePOIRequestDTO {
   rank: number;
 }

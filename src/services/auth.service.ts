@@ -1,49 +1,52 @@
 import {
-  LoginRequest,
-  LoginResponse,
-  SignupRequest,
-  SignupResponse,
+  LoginRequestDTO,
+  LoginResponseDTO,
+  SignupRequestDTO,
+  SignupResponseDTO,
 } from '../controllers/dto/auth.dto';
 import { User } from '../models/user.model';
-import { userRepository } from '../repositories/user.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { comparePasswords, hashPassword } from '../utils/password.utils';
 
 class AuthService {
-  async login(info: LoginRequest): Promise<LoginResponse> {
-    const username = info.username;
-    const password = info.password;
+  async login(info: LoginRequestDTO): Promise<LoginResponseDTO> {
+    const { username, password } = info;
 
-    const userExists = await userRepository.findByUsernameAndPassword(
-      username,
-      password
-    );
+    const foundUser: User | null = await UserRepository.findOneBy({ username });
 
-    let loginMsg = {} as LoginResponse;
-    if (userExists === undefined) {
-      loginMsg.msg = 'Login failed';
-    } else {
-      loginMsg.msg = 'Logged in successfully';
+    if (foundUser === null) {
+      return { msg: 'User not found', status: 404 };
     }
-    return loginMsg;
+
+    // TODO: check hashed password
+    const isRightPassword = await comparePasswords(
+      password,
+      foundUser.password
+    );
+    if (!isRightPassword) {
+      return { msg: 'Password mismatch', status: 400 };
+    }
+
+    return { msg: 'Logged in successfully', status: 200 };
   }
 
-  async signup(info: SignupRequest): Promise<SignupResponse> {
-    const username = info.username;
-    const password = info.password;
+  async signup(info: SignupRequestDTO): Promise<SignupResponseDTO> {
+    const { username, password } = info;
 
-    const userExists = await userRepository.findByUsername(username);
+    const foundUser = await UserRepository.findOneBy({ username });
 
-    let signupMsg = {} as LoginResponse;
-    if (userExists === undefined) {
-      let user = {} as User;
-      user.username = username;
-      user.password = password;
-      user.pois = [];
-      await userRepository.save(user);
-      signupMsg.msg = 'Signup successful';
-    } else {
-      signupMsg.msg = 'Signup failed - user already exists';
+    if (foundUser != undefined) {
+      return { msg: 'User already signed up', status: 400 };
     }
-    return signupMsg;
+
+    // TODO: hash password
+    const hashedPassword = await hashPassword(password);
+
+    const savedUser = await UserRepository.save({
+      username,
+      password: hashedPassword,
+    });
+    return { msg: 'User saved successfully', status: 201 };
   }
 }
 

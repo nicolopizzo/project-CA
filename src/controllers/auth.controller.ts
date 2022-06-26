@@ -1,21 +1,21 @@
 import { Request, Response, Router } from 'express';
 import { authService } from '../services/auth.service';
-import { LoginRequest, SignupRequest } from './dto/auth.dto';
+import { LoginRequestDTO, SignupRequestDTO } from './dto/auth.dto';
 
 const router = Router();
 
-router.get('/login', async (req: Request, res: Response) => {
-  const info: LoginRequest = req.body;
+router.post('/login', async (req: Request, res: Response) => {
+  const info: LoginRequestDTO = req.body;
 
-  const loginMsg = await authService.login(info);
-  res.status(200).send(loginMsg);
+  const { status, msg } = await authService.login(info);
+  res.status(status).send({ msg });
 });
 
-router.get('/signup', async (req: Request, res: Response) => {
-  const info: SignupRequest = req.body;
+router.put('/signup', async (req: Request, res: Response) => {
+  const info: SignupRequestDTO = req.body;
 
-  const signupMsg = await authService.signup(info);
-  res.status(200).send(signupMsg);
+  const { status, msg } = await authService.signup(info);
+  res.status(status).send({ msg });
 });
 
 export { router as AuthRouter };

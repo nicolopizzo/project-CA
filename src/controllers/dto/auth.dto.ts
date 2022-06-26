@@ -1,17 +1,19 @@
-export class LoginRequest {
+export class LoginRequestDTO {
   username: string;
   password: string;
 }
 
-export class LoginResponse {
+export class LoginResponseDTO {
   msg: string;
+  status: number;
 }
 
-export class SignupRequest {
+export class SignupRequestDTO {
   username: string;
   password: string;
 }
 
-export class SignupResponse {
+export class SignupResponseDTO {
   msg: string;
+  status: number;
 }
