@@ -8,6 +8,13 @@ export class OptimalPOIRequestDTO {
   positions: IPosition[];
 }
 
+export type POIZoneDTO = POIZoneItemDTO[];
+
+class POIZoneItemDTO {
+  area: number[][];
+  count: number;
+}
+
 export class CreatePOIRequestDTO {
   rank: number;
   type: POIType;
@@ -22,15 +29,32 @@ export class CreatePOIDto {
   name: string;
 }
 
-export class POIResponseDTO {
+export class OptimalPOIResponseDTO {
   items: POIItemDTO[];
+}
+
+export interface POIResponseDTO {
+  name: string;
+  position: IPosition;
+  type: POIType;
+  rank: number;
 }
 
 export class POIItemDTO {
   position: IPosition;
-  poi: POI;
+  poi: POIResponseDTO;
 }
 
 export class UpdatePOIRequestDTO {
   rank: number;
 }
+
+export const fromPOI = (poi: POI): POIResponseDTO => ({
+  name: poi.name,
+  position: {
+    latitude: poi.position.coordinates[1],
+    longitude: poi.position.coordinates[0],
+  },
+  type: poi.type,
+  rank: poi.rank,
+});

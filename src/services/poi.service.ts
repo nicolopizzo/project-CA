@@ -1,51 +1,71 @@
 import { Point } from 'geojson';
-import { MoreThanOrEqual } from 'typeorm';
 import {
   CreatePOIRequestDTO,
-  POIItemDTO,
   OptimalPOIRequestDTO,
-  POIResponseDTO,
+  OptimalPOIResponseDTO,
   CreatePOIDto,
+  POIZoneDTO,
+  fromPOI,
 } from '../controllers/dto/poi.dto';
 import { POI } from '../models/poi.model';
 import { IPosition } from '../models/position.model';
 import { POIRepository } from '../repositories/poi.repository';
+import { neighbors } from '../utils/area.util';
 
 class POIService {
   public async findOptimalPOI(
     info: OptimalPOIRequestDTO
-  ): Promise<POIResponseDTO> {
-    const poisFiltered: POI[] = await POIRepository.find({
-      where: {
-        rank: MoreThanOrEqual(info.minRank),
-        type: info.type,
-      },
-    });
+  ): Promise<OptimalPOIResponseDTO> {
+    let returnedPois: OptimalPOIResponseDTO = { items: [] };
 
-    let returnedPois: POIResponseDTO = { items: [] };
-    if (poisFiltered.length <= 0) {
-      // TODO: return request unfullfillable
-      return returnedPois;
-    }
+    const formattedType = `'${info.type}'::public."poi_type_enum"`;
+    for (let position of info.positions) {
+      const { latitude, longitude } = position;
 
-    for (let pos of info.positions) {
-      let item: POIItemDTO = { position: pos, poi: poisFiltered[0] };
-      let minDistance = Number.MAX_VALUE;
+      // true permette di considerare la distanza sferica tra i due punti.
+      // Se non lo si esplicita la distanza è proiettata sul piano.
+      // Configuro l'SRID su 4326 in modo da invididuare le coordinate come longitudine e latitudine.
+      const orderBy = `ST_Distance(poi.position, ST_SetSRID(ST_Point(${longitude}, ${latitude}), 4326), true)`;
 
-      for (let poi of poisFiltered) {
-        const [longitude, latitude] = poi.position.coordinates;
-        const distance = harvesineDistance(pos, { latitude, longitude });
+      const poi = await POIRepository.createQueryBuilder('poi')
+        .select(['poi'])
+        .where(`poi.rank > ${info.minRank}`)
+        .andWhere(`poi.type = ${formattedType}`)
+        .orderBy(orderBy)
+        .getOne();
 
-        if (distance < minDistance) {
-          minDistance = distance;
-          item.poi = poi;
-        }
+      if (poi) {
+        const responsePoi = fromPOI(poi);
+        returnedPois.items.push({ poi: responsePoi, position });
       }
-
-      returnedPois.items.push(item);
     }
 
     return returnedPois;
+  }
+
+  public async groupByZone(): Promise<POIZoneDTO> {
+    let areas: POIZoneDTO = [];
+
+    for (let area of neighbors) {
+      const polygon = JSON.stringify(area);
+
+      const whereClause =
+        `ST_Within(poi.position, 
+          st_geomfromgeojson( 
+            '{ "type": "Polygon", "coordinates": [` +
+        polygon +
+        `]}'))`;
+
+      // Query the positions inside the area
+      const poisCount: number = await POIRepository.createQueryBuilder('poi')
+        .select()
+        .where(whereClause)
+        .getCount();
+
+      areas.push({ area: area, count: poisCount });
+    }
+
+    return areas;
   }
 
   public async create(info: CreatePOIRequestDTO): Promise<POI | undefined> {
@@ -82,22 +102,5 @@ class POIService {
   //   return updatedPOI;
   // }
 }
-
-const harvesineDistance = (p1: IPosition, p2: IPosition): number => {
-  const R = 6371; // Radius of the earth in km
-  const dLat = deg2rad(p2.latitude - p1.latitude); // deg2rad below
-  const dLon = deg2rad(p2.longitude - p1.longitude);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(deg2rad(p1.latitude)) *
-      Math.cos(deg2rad(p2.latitude)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const d = R * c; // Distance in km
-  return d;
-};
-
-const deg2rad = (d: number): number => (d * Math.PI) / 180;
 
 export const poiService = new POIService();

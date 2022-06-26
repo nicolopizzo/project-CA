@@ -11,6 +11,12 @@ router.get('/optimal', async (req: Request, res: Response) => {
   res.status(200).send(poiFound);
 });
 
+router.get('/zone', async (req: Request, res: Response) => {
+  const data = await poiService.groupByZone();
+
+  res.send(data);
+});
+
 router.get('/', async (req: Request, res: Response) => {
   const poiFound = await poiService.findAll();
 
