@@ -4,7 +4,7 @@ import { CreatePOIRequestDTO, OptimalPOIRequestDTO } from './dto/poi.dto';
 
 const router = Router();
 
-router.get('/optimal', async (req: Request, res: Response) => {
+router.post('/optimal', async (req: Request, res: Response) => {
   const info: OptimalPOIRequestDTO = req.body;
 
   const poiFound = await poiService.findOptimalPOI(info);
