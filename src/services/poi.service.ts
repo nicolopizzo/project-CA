@@ -7,8 +7,9 @@ import {
   POIZoneDTO,
   fromPOI,
 } from '../controllers/dto/poi.dto';
+import { Activity } from '../models/activity.model';
 import { POI } from '../models/poi.model';
-import { IPosition } from '../models/position.model';
+import { ActivityRepository } from '../repositories/activity.repository';
 import { POIRepository } from '../repositories/poi.repository';
 import { neighbors } from '../utils/area.util';
 
@@ -37,6 +38,18 @@ class POIService {
       if (poi) {
         const responsePoi = fromPOI(poi);
         returnedPois.items.push({ poi: responsePoi, position });
+
+        // Save activity for admin frontend heatmap
+        const timestamp = new Date();
+        // expires in 5 minutes
+        const expires = new Date(timestamp.getTime() + 300000);
+        const activity: Partial<Activity> = {
+          poiPosition: poi.position,
+          timestamp,
+          expires,
+        };
+
+        await ActivityRepository.save(activity);
       }
     }
 
