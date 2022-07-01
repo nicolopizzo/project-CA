@@ -18,7 +18,6 @@ class AuthService {
       return { msg: 'User not found', status: 404 };
     }
 
-    // TODO: check hashed password
     const isRightPassword = await comparePasswords(
       password,
       foundUser.password
@@ -39,7 +38,6 @@ class AuthService {
       return { msg: 'User already signed up', status: 400 };
     }
 
-    // TODO: hash password
     const hashedPassword = await hashPassword(password);
 
     const savedUser = await UserRepository.save({
