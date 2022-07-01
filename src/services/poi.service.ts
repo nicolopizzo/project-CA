@@ -11,7 +11,7 @@ import { Activity } from '../models/activity.model';
 import { POI } from '../models/poi.model';
 import { ActivityRepository } from '../repositories/activity.repository';
 import { POIRepository } from '../repositories/poi.repository';
-import { neighbors } from '../utils/area.util';
+import { neighborhoods } from '../utils/area.util';
 
 class POIService {
   public async findOptimalPOI(
@@ -44,6 +44,7 @@ class POIService {
         // expires in 5 minutes
         const expires = new Date(timestamp.getTime() + 300000);
         const activity: Partial<Activity> = {
+          userPosition: { type: 'Point', coordinates: [longitude, latitude] },
           poiPosition: poi.position,
           timestamp,
           expires,
@@ -59,7 +60,7 @@ class POIService {
   public async groupByZone(): Promise<POIZoneDTO> {
     let areas: POIZoneDTO = [];
 
-    for (let area of neighbors) {
+    for (let area of neighborhoods) {
       const polygon = JSON.stringify(area);
 
       const whereClause =
@@ -101,19 +102,7 @@ class POIService {
     return POIRepository.find();
   }
 
-  // async updatePOI(id: string, rank: number): Promise<POI | undefined> {
-  //   const foundPOI = await poiRepository.findById(id);
-  //   if (foundPOI == undefined) {
-  //     console.log(foundPOI);
-
-  //     return undefined;
-  //   }
-
-  //   foundPOI.rank = rank;
-  //   const updatedPOI = await poiRepository.update(id, foundPOI);
-
-  //   return updatedPOI;
-  // }
+  //TODO: implement update POI Rank
 }
 
 export const poiService = new POIService();

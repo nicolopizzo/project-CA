@@ -15,6 +15,15 @@ export class Activity {
   })
   poiPosition: Point;
 
+  @Index({ spatial: true })
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+    nullable: false,
+  })
+  userPosition: Point;
+
   @Column()
   timestamp: Date;
 

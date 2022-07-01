@@ -2,10 +2,11 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { Point } from 'geojson';
 
 export enum POIType {
-  BAR = 'bar',
-  RESTAURANT = 'restaurant',
-  GREENAREA = 'greenarea',
+  HISTORICAL_BUILDING = 'historical building',
+  PARK = 'park',
+  THEATER = 'theater',
   MUSEUM = 'museum',
+  DEPARTMENT = 'department',
 }
 
 @Entity()
@@ -28,7 +29,6 @@ export class POI {
   @Column({
     type: 'enum',
     enum: POIType,
-    default: POIType.RESTAURANT,
   })
   type: POIType;
 

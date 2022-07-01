@@ -34,6 +34,7 @@ export class OptimalPOIResponseDTO {
 }
 
 export interface POIResponseDTO {
+  id: number;
   name: string;
   position: IPosition;
   type: POIType;
@@ -50,6 +51,7 @@ export class UpdatePOIRequestDTO {
 }
 
 export const fromPOI = (poi: POI): POIResponseDTO => ({
+  id: poi.id,
   name: poi.name,
   position: {
     latitude: poi.position.coordinates[1],
