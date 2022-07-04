@@ -8,6 +8,11 @@ import {
 import { ActivityRepository } from '../repositories/activity.repository';
 import { neighborhoods } from '../utils/area.util';
 
+type Cluster = {
+  points: Point[];
+  centroid: Point;
+};
+
 class ActivityService {
   public async getValidActivities(): Promise<ActivityResponseDTO[]> {
     // const activities = await ActivityRepository.find();
@@ -42,43 +47,103 @@ class ActivityService {
     return groupedZones;
   }
 
-  public async getUserPositions(): Promise<
-    ActivityClusterResponseDTO | undefined
-  > {
-    let k = 2;
-    try {
-      // TODO: where clause for temporal window
-      const grouped = await ActivityRepository.createQueryBuilder('activity')
-        .select([
-          `activity.userPosition`,
-          `st_clusterkmeans(activity.userPosition, ${k}) over () as cid`,
-        ])
-        // .where()
-        .getRawMany();
-
-      let clusters: Point[][] = [];
-      for (let i = 0; i < k; i++) {
-        clusters.push([]);
-      }
-
-      for (let touple of grouped) {
-        const { activity_userPosition, cid } = touple;
-
-        clusters[cid].push(activity_userPosition);
-      }
-
-      const resClusters: ActivityClusterResponseDTO = clusters.map((ps) => ({
-        count: ps.length,
-        centroid: this.centroid(ps).coordinates,
-      }));
-
-      return resClusters;
-    } catch (error) {
-      return undefined;
-    }
+  public async clusterUsers(): Promise<ActivityClusterResponseDTO | undefined> {
+    const clusters = await this.elbowMethod();
+    return clusters?.map((c) => ({
+      count: c.points.length,
+      centroid: c.centroid.coordinates,
+    }));
   }
 
-  //TODO: implement elbow method to find the best k
+  private async groupUsers(k: number): Promise<Cluster[] | undefined> {
+    // TODO: where clause for temporal window
+    const grouped = await ActivityRepository.createQueryBuilder('activity')
+      .select([
+        `activity.userPosition`,
+        `st_clusterkmeans(activity.userPosition, ${k}) over () as cid`,
+      ])
+      // .where()
+      .getRawMany();
+
+    let clusters: Point[][] = [];
+    for (let i = 0; i < k; i++) {
+      clusters.push([]);
+    }
+
+    for (let touple of grouped) {
+      const { activity_userPosition, cid } = touple;
+
+      clusters[cid].push(activity_userPosition);
+    }
+
+    return clusters.map((c) => ({ points: c, centroid: this.centroid(c) }));
+  }
+
+  private async elbowMethod(): Promise<Cluster[] | undefined> {
+    const activities = await ActivityRepository.find();
+    const activitiesCount = activities.length;
+    const kMin = Math.min(activitiesCount, 6);
+    const kMax = Math.min(activitiesCount, 12);
+
+    let distortions = [];
+    for (let k = kMin; k <= kMax; k++) {
+      const clusters = await this.groupUsers(k);
+      if (clusters === undefined) {
+        return;
+      }
+
+      distortions.push(this.avgDistortion(clusters));
+    }
+
+    const k1 = distortions.length - 1;
+    // find where distortion decreases linearly
+    for (let k = kMin; k < kMax; k++) {
+      const k0 = k - kMin;
+      const dy = distortions[k1] - distortions[k0];
+      const dx = kMax - k;
+      const x0 = k;
+      const y0 = distortions[k0];
+      const x = k + 1;
+
+      const m = dy / dx;
+
+      // prossimo valore se si ha decrescenza lineare
+      const predNext = (m * x - m * x0 + y0) / 1000;
+      // prossimo valore reale
+      const next = distortions[k0 + 1] / 1000;
+      const err = Math.abs(predNext - next);
+
+      // Imposto un errore di +/- 0.07
+      if (err < 0.07) {
+        return await this.groupUsers(k);
+      }
+
+      console.log(predNext, next);
+    }
+
+    return await this.groupUsers(kMax);
+  }
+
+  private avgDistortion(clusters: Cluster[]): number {
+    return (
+      clusters
+        .map((c) => this.distortion(c.points, c.centroid))
+        .reduce((a, b) => a + b, 0) / clusters.length
+    );
+  }
+
+  private distortion(points: Point[], centroid: Point): number {
+    const d = points
+      .map((p) => {
+        const x = p.coordinates[0];
+        const y = p.coordinates[1];
+        const xc = centroid.coordinates[0];
+        const yc = centroid.coordinates[1];
+        return Math.sqrt((x - xc) ** 2 + (y - yc) ** 2);
+      })
+      .reduce((a, b) => a + b, 0);
+    return d;
+  }
 
   private centroid(points: Point[]): Point {
     const x = points.map((p) => p.coordinates[0]);

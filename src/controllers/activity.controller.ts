@@ -17,7 +17,7 @@ router.get('/zone', async (req: Request, res: Response) => {
 });
 
 router.get('/users', async (req: Request, res: Response) => {
-  const data = await activityService.getUserPositions();
+  const data = await activityService.clusterUsers();
   res.send(data);
 });
 
