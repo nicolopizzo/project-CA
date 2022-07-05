@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import { AppDataSource } from './datasource';
 import cors from 'cors';
 import { ActivityRouter } from './controllers/activity.controller';
+import { ProfileRouter } from './controllers/profile.controller';
 
 const main = async () => {
   const app = express();
@@ -17,6 +18,7 @@ const main = async () => {
   app.use('/poi', POIRouter);
   app.use('/auth', AuthRouter);
   app.use('/activity', ActivityRouter);
+  app.use('/me', ProfileRouter);
   // app.use('/privacy', PrivacyRouter);
 
   app.listen(PORT, () => {

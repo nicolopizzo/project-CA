@@ -10,6 +10,6 @@ export class User {
   @Column({ nullable: false })
   password: string;
 
-  // @Column({ type: 'int', array: true })
-  // pois: number[]; // id of pois
+  @Column({ type: 'int', array: true })
+  pois: number[]; // id of pois
 }
