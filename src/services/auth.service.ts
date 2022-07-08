@@ -43,6 +43,7 @@ class AuthService {
     const savedUser = await UserRepository.save({
       username,
       password: hashedPassword,
+      pois: [],
     });
     return { msg: 'User saved successfully', status: 201 };
   }

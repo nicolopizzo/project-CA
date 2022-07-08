@@ -12,8 +12,8 @@ router.post('/poi', async (req: Request, res: Response) => {
 });
 
 router.get('/poi/:username', async (req: Request, res: Response) => {
-    const username = req.params.username;
-  const data = await profileService.getUserPois({username});
+  const username = req.params.username;
+  const data = await profileService.getUserPois({ username });
 
   res.status(200).send(data);
 });

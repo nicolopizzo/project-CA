@@ -1,3 +1,5 @@
+import { fromPOI } from '../controllers/dto/poi.dto';
+import { In } from 'typeorm';
 import {
   AddUserPOI,
   UserPOIRequest,
@@ -14,28 +16,33 @@ class ProfileService {
     let username = info.username;
     const foundUser: User | null = await UserRepository.findOneBy({ username });
     let POIIdList = foundUser?.pois;
-    const poi = await POIRepository.createQueryBuilder('poi')
-      .select(['poi'])
-      .where(`poi.id IN (:pois)`, { pois: POIIdList });
+
+    const pois = await POIRepository.findBy({
+      id: In(POIIdList ? POIIdList : []),
+    });
+    pois.map((poi) => {
+      returnedPois.POIs.push(poi);
+    });
 
     return returnedPois;
   }
 
   public async addPoi(info: AddUserPOI): Promise<UserPOIResponse> {
-    let returnedPois: UserPOIResponse = { POIs: [] };
-
     let username = info.username;
     const foundUser: User | null = await UserRepository.findOneBy({ username });
-    if (foundUser) {
-      let returnedPois = foundUser.pois;
+    if (foundUser != null) {
       let id = info.poi.id;
 
-      returnedPois.push(id);
-
-      await UserRepository.update(returnedPois, foundUser);
+      if (foundUser.pois.indexOf(id) == -1) {
+        foundUser.pois.push(id);
+        await UserRepository.save(foundUser);
+      } else {
+        foundUser.pois.splice(foundUser.pois.indexOf(id), 1);
+        await UserRepository.save(foundUser);
+      }
     }
 
-    return returnedPois;
+    return this.getUserPois({ username });
   }
 }
 

@@ -1,4 +1,3 @@
-import { Repository } from 'typeorm';
 import { AppDataSource } from '../datasource';
 import { User } from '../models/user.model';
 
