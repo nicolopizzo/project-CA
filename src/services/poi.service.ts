@@ -76,6 +76,7 @@ class POIService {
       const poisCount: number = await POIRepository.createQueryBuilder('poi')
         .select()
         .where(whereClause)
+        .andWhere(`poi.active = true`)
         .getCount();
 
       areas.push({ area: area, count: poisCount });
