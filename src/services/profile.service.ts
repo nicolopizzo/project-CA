@@ -37,6 +37,22 @@ class ProfileService {
         foundUser.pois.push(id);
         await UserRepository.save(foundUser);
       } else {
+        console.log('poi already exists');
+      }
+    }
+
+    return this.getUserPois({ username });
+  }
+
+  public async removePoi(info: AddUserPOI): Promise<UserPOIResponse> {
+    let username = info.username;
+    const foundUser: User | null = await UserRepository.findOneBy({ username });
+    if (foundUser != null) {
+      let id = info.poi.id;
+
+      if (foundUser.pois.indexOf(id) == -1) {
+        console.log('poi not found');
+      } else {
         foundUser.pois.splice(foundUser.pois.indexOf(id), 1);
         await UserRepository.save(foundUser);
       }
