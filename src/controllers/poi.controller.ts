@@ -36,9 +36,29 @@ router.put('/', async (req: Request, res: Response) => {
   res.status(201).send(poi);
 });
 
-router.post('/update', async (req: Request, res: Response) => {
-  const { id, rank } = req.body;
+router.patch('/:id/enable', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const poi = await poiService.enable(parseInt(id));
 
+  if (poi == undefined) {
+    res.status(404).send(`POI with id "${id}" not found`);
+  }
+
+  res.status(200).send(poi);
+});
+
+router.patch('/:id/disable', async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const poi = await poiService.disable(parseInt(id));
+
+  if (poi == undefined) {
+    res.status(404).send(`POI with id "${id}" not found`);
+  }
+
+  res.status(200).send(poi);
+});
+
+router.post('/:id', async (req: Request, res: Response) => {
   // const updatedPOI = await poiService.updatePOI(id, rank);
   // if (updatedPOI == undefined) {
   //   res.status(404).send(`POI with id "${id}" not found`);

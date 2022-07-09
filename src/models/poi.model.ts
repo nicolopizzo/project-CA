@@ -34,4 +34,7 @@ export class POI {
 
   @Column({ type: 'integer' })
   rank: number;
+
+  @Column({ default: true, nullable: false })
+  active: boolean;
 }

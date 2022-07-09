@@ -32,6 +32,7 @@ class POIService {
         .select(['poi'])
         .where(`poi.rank > ${info.minRank}`)
         .andWhere(`poi.type = ${formattedType}`)
+        .andWhere(`poi.active = true`) // Restituisco solo i POI abilitati dall'amministratore
         .orderBy(orderBy)
         .getOne();
 
@@ -100,6 +101,26 @@ class POIService {
 
   async findAll(): Promise<POI[]> {
     return POIRepository.find();
+  }
+
+  async enable(id: number): Promise<POI | undefined> {
+    const foundPOI = await POIRepository.findOne({ where: { id } });
+    if (foundPOI === null) {
+      return undefined;
+    }
+
+    foundPOI.active = true;
+    return POIRepository.save(foundPOI);
+  }
+
+  async disable(id: number): Promise<POI | undefined> {
+    const foundPOI = await POIRepository.findOne({ where: { id } });
+    if (foundPOI === null) {
+      return undefined;
+    }
+
+    foundPOI.active = false;
+    return POIRepository.save(foundPOI);
   }
 
   //TODO: implement update POI Rank
