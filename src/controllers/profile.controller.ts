@@ -4,10 +4,17 @@ import { AddUserPOI } from './dto/profile.dto';
 
 const router = Router();
 
-router.post('/poi', async (req: Request, res: Response) => {
+router.post('/poi/add', async (req: Request, res: Response) => {
   const info: AddUserPOI = req.body;
 
   const poiList = await profileService.addPoi(info);
+  res.status(200).send(poiList);
+});
+
+router.post('/poi/remove', async (req: Request, res: Response) => {
+  const info: AddUserPOI = req.body;
+
+  const poiList = await profileService.removePoi(info);
   res.status(200).send(poiList);
 });
 
