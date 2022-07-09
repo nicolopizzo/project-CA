@@ -15,14 +15,8 @@ type Cluster = {
 
 const invert = (pos: number[]) => [pos[1], pos[0]];
 
-const toClause = (interval: string): string => {
-  if (interval === 'day') {
-    return `activity.timestamp::date = CURRENT_DATE`;
-  } else if (interval === '2hr') {
-    return `activity.timestamp >= NOW() - INTERVAL '2 hours'`;
-  }
-
-  return '';
+const toClause = (startTime: Date, endTime: Date): string => {
+  return `activity.timestamp BETWEEN '${startTime.toISOString()}' AND '${endTime.toISOString()}'`;
 };
 
 class ActivityService {
@@ -67,9 +61,10 @@ class ActivityService {
   }
 
   public async clusterUsers(
-    interval: string
+    startTime: Date,
+    endTime: Date
   ): Promise<ActivityClusterResponseDTO | undefined> {
-    const clusters = await this.elbowMethod(interval);
+    const clusters = await this.elbowMethod(startTime, endTime);
     return clusters?.map((c) => ({
       count: c.points.length,
       centroid: c.centroid.coordinates,
@@ -78,10 +73,11 @@ class ActivityService {
 
   private async groupUsers(
     k: number,
-    interval: string
+    startTime: Date,
+    endTime: Date
   ): Promise<Cluster[] | undefined> {
     // TODO: where clause for temporal window
-    let intervalClause = toClause(interval);
+    let intervalClause = toClause(startTime, endTime);
 
     const grouped = await ActivityRepository.createQueryBuilder('activity')
       .select([
@@ -105,9 +101,12 @@ class ActivityService {
     return clusters.map((c) => ({ points: c, centroid: this.centroid(c) }));
   }
 
-  private async elbowMethod(interval: string): Promise<Cluster[] | undefined> {
+  private async elbowMethod(
+    startTime: Date,
+    endTime: Date
+  ): Promise<Cluster[] | undefined> {
     // const activities = await ActivityRepository;
-    let intervalClause = toClause(interval);
+    let intervalClause = toClause(startTime, endTime);
     const activitiesCount = await ActivityRepository.createQueryBuilder(
       'activity'
     )
@@ -118,7 +117,7 @@ class ActivityService {
 
     let distortions = [];
     for (let k = kMin; k <= kMax; k++) {
-      const clusters = await this.groupUsers(k, interval);
+      const clusters = await this.groupUsers(k, startTime, endTime);
       if (clusters === undefined) {
         return;
       }
@@ -146,11 +145,11 @@ class ActivityService {
 
       // Imposto un errore di +/- 0.07
       if (err < 0.07) {
-        return await this.groupUsers(k, interval);
+        return await this.groupUsers(k, startTime, endTime);
       }
     }
 
-    return await this.groupUsers(kMax, interval);
+    return await this.groupUsers(kMax, startTime, endTime);
   }
 
   private avgDistortion(clusters: Cluster[]): number {

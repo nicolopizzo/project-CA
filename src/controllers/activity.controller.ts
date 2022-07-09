@@ -24,8 +24,15 @@ router.get('/zone', async (req: Request, res: Response) => {
 });
 
 router.get('/clustering', async (req: Request, res: Response) => {
-  const { interval } = req.query as { interval: string };
-  const data = await activityService.clusterUsers(interval);
+  let { start, end } = req.query as {
+    start: string;
+    end: string;
+  };
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  const data = await activityService.clusterUsers(startDate, endDate);
   res.send(data);
 });
 
