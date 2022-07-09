@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import { Position } from 'geojson';
 import { activityService } from '../services/activity.service';
 import { ActivityResponseDTO } from './dto/activity.dto';
 
@@ -11,13 +12,20 @@ router.get('/', async (req: Request, res: Response) => {
   res.send(activites);
 });
 
+router.get('/user', async (req: Request, res: Response) => {
+  const activites: Position[] = await activityService.getValidUserPositions();
+
+  res.send(activites);
+});
+
 router.get('/zone', async (req: Request, res: Response) => {
   const data = await activityService.groupActivities();
   res.send(data);
 });
 
-router.get('/users', async (req: Request, res: Response) => {
-  const data = await activityService.clusterUsers();
+router.get('/clustering', async (req: Request, res: Response) => {
+  const { interval } = req.query as { interval: string };
+  const data = await activityService.clusterUsers(interval);
   res.send(data);
 });
 

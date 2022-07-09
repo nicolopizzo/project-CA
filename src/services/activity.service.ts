@@ -1,4 +1,4 @@
-import { Point } from 'geojson';
+import { Point, Position } from 'geojson';
 import {
   ActivityClusterResponseDTO,
   ActivityResponseDTO,
@@ -13,6 +13,18 @@ type Cluster = {
   centroid: Point;
 };
 
+const invert = (pos: number[]) => [pos[1], pos[0]];
+
+const toClause = (interval: string): string => {
+  if (interval === 'day') {
+    return `activity.timestamp::date = CURRENT_DATE`;
+  } else if (interval === '2hr') {
+    return `activity.timestamp >= NOW() - INTERVAL '2 hours'`;
+  }
+
+  return '';
+};
+
 class ActivityService {
   public async getValidActivities(): Promise<ActivityResponseDTO[]> {
     // const activities = await ActivityRepository.find();
@@ -21,6 +33,13 @@ class ActivityService {
       .getMany();
 
     return activities.map(fromActivity);
+  }
+
+  public async getValidUserPositions(): Promise<Position[]> {
+    const activities = await ActivityRepository.createQueryBuilder('activity')
+      .where('activity.expires > NOW()')
+      .getMany();
+    return activities.map((a) => invert(a.userPosition.coordinates));
   }
 
   public async groupActivities(): Promise<ActivityZoneResponseDTO> {
@@ -47,22 +66,29 @@ class ActivityService {
     return groupedZones;
   }
 
-  public async clusterUsers(): Promise<ActivityClusterResponseDTO | undefined> {
-    const clusters = await this.elbowMethod();
+  public async clusterUsers(
+    interval: string
+  ): Promise<ActivityClusterResponseDTO | undefined> {
+    const clusters = await this.elbowMethod(interval);
     return clusters?.map((c) => ({
       count: c.points.length,
       centroid: c.centroid.coordinates,
     }));
   }
 
-  private async groupUsers(k: number): Promise<Cluster[] | undefined> {
+  private async groupUsers(
+    k: number,
+    interval: string
+  ): Promise<Cluster[] | undefined> {
     // TODO: where clause for temporal window
+    let intervalClause = toClause(interval);
+
     const grouped = await ActivityRepository.createQueryBuilder('activity')
       .select([
         `activity.userPosition`,
         `st_clusterkmeans(activity.userPosition, ${k}) over () as cid`,
       ])
-      // .where()
+      .where(intervalClause)
       .getRawMany();
 
     let clusters: Point[][] = [];
@@ -79,15 +105,20 @@ class ActivityService {
     return clusters.map((c) => ({ points: c, centroid: this.centroid(c) }));
   }
 
-  private async elbowMethod(): Promise<Cluster[] | undefined> {
-    const activities = await ActivityRepository.find();
-    const activitiesCount = activities.length;
+  private async elbowMethod(interval: string): Promise<Cluster[] | undefined> {
+    // const activities = await ActivityRepository;
+    let intervalClause = toClause(interval);
+    const activitiesCount = await ActivityRepository.createQueryBuilder(
+      'activity'
+    )
+      .where(intervalClause)
+      .getCount();
     const kMin = Math.min(activitiesCount, 6);
     const kMax = Math.min(activitiesCount, 12);
 
     let distortions = [];
     for (let k = kMin; k <= kMax; k++) {
-      const clusters = await this.groupUsers(k);
+      const clusters = await this.groupUsers(k, interval);
       if (clusters === undefined) {
         return;
       }
@@ -115,13 +146,11 @@ class ActivityService {
 
       // Imposto un errore di +/- 0.07
       if (err < 0.07) {
-        return await this.groupUsers(k);
+        return await this.groupUsers(k, interval);
       }
-
-      console.log(predNext, next);
     }
 
-    return await this.groupUsers(kMax);
+    return await this.groupUsers(kMax, interval);
   }
 
   private avgDistortion(clusters: Cluster[]): number {

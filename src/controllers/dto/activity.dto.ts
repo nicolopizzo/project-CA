@@ -32,3 +32,7 @@ interface ClusterDTO {
 }
 
 export type ActivityClusterResponseDTO = ClusterDTO[];
+
+export interface ClusteringRequestDTO {
+  interval: string;
+}
