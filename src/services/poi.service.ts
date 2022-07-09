@@ -6,6 +6,7 @@ import {
   CreatePOIDto,
   POIZoneDTO,
   fromPOI,
+  UpdatePOIDto,
 } from '../controllers/dto/poi.dto';
 import { Activity } from '../models/activity.model';
 import { POI } from '../models/poi.model';
@@ -104,7 +105,7 @@ class POIService {
   }
 
   async enable(id: number): Promise<POI | undefined> {
-    const foundPOI = await POIRepository.findOne({ where: { id } });
+    const foundPOI = await POIRepository.findOneBy({ id });
     if (foundPOI === null) {
       return undefined;
     }
@@ -114,7 +115,7 @@ class POIService {
   }
 
   async disable(id: number): Promise<POI | undefined> {
-    const foundPOI = await POIRepository.findOne({ where: { id } });
+    const foundPOI = await POIRepository.findOneBy({ id });
     if (foundPOI === null) {
       return undefined;
     }
@@ -123,7 +124,25 @@ class POIService {
     return POIRepository.save(foundPOI);
   }
 
-  //TODO: implement update POI Rank
+  async update(id: number, poi: UpdatePOIDto): Promise<POI | undefined> {
+    const foundPOI = await POIRepository.findOneBy({ id });
+    if (foundPOI === null) {
+      return undefined;
+    }
+
+    const updatedPOI = await POIRepository.save({ id, ...poi });
+
+    return updatedPOI;
+  }
+
+  async findById(id: number): Promise<POI | undefined> {
+    const poi = await POIRepository.findOneBy({ id });
+    if (poi === null) {
+      return undefined;
+    }
+
+    return poi;
+  }
 }
 
 export const poiService = new POIService();

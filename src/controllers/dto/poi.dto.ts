@@ -46,10 +46,6 @@ export class POIItemDTO {
   poi: POIResponseDTO;
 }
 
-export class UpdatePOIRequestDTO {
-  rank: number;
-}
-
 export const fromPOI = (poi: POI): POIResponseDTO => ({
   id: poi.id,
   name: poi.name,
@@ -60,3 +56,9 @@ export const fromPOI = (poi: POI): POIResponseDTO => ({
   type: poi.type,
   rank: poi.rank,
 });
+
+export interface UpdatePOIDto {
+  rank?: number;
+  name?: string;
+  active?: boolean;
+}

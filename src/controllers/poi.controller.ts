@@ -58,13 +58,34 @@ router.patch('/:id/disable', async (req: Request, res: Response) => {
   res.status(200).send(poi);
 });
 
-router.post('/:id', async (req: Request, res: Response) => {
-  // const updatedPOI = await poiService.updatePOI(id, rank);
-  // if (updatedPOI == undefined) {
-  //   res.status(404).send(`POI with id "${id}" not found`);
-  // }
+router.get('/:id', async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const poi = await poiService.findById(parseInt(id));
+    if (poi === undefined) {
+      res.status(404).send(`POI with id "${id}" not found`);
+    }
 
-  res.status(200).send({});
+    res.status(200).send(poi);
+  } catch (e) {
+    res.status(400).send({ msg: 'Bad request, id must be a number' });
+  }
+});
+
+router.post('/:id', async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
+    const id = parseInt(req.params.id);
+    const poi = await poiService.update(id, data);
+
+    if (poi === undefined) {
+      res.status(404).send(`POI with id "${id}" not found`);
+    }
+
+    res.status(200).send(poi);
+  } catch (e) {
+    res.status(400).send({ msg: 'Bad request, id must be a number' + e });
+  }
 });
 
 export { router as POIRouter };
