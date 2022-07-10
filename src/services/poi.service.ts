@@ -63,7 +63,7 @@ class POIService {
     let areas: POIZoneDTO = [];
 
     for (let area of neighborhoods) {
-      const polygon = JSON.stringify(area);
+      const polygon = JSON.stringify(area.coordinates);
 
       const whereClause =
         `ST_Within(poi.position, 
@@ -79,7 +79,10 @@ class POIService {
         .andWhere(`poi.active = true`)
         .getCount();
 
-      areas.push({ area: area, count: poisCount });
+      areas.push({
+        area: area.coordinates,
+        count: (poisCount / area.area) * 1000 * 1000,
+      }); // poi/km2
     }
 
     return areas;

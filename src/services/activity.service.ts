@@ -40,7 +40,7 @@ class ActivityService {
     const groupedZones: ActivityZoneResponseDTO = [];
 
     for (let area of neighborhoods) {
-      const polygon = JSON.stringify(area);
+      const polygon = JSON.stringify(area.coordinates);
       const withinClause =
         `ST_Within(activity.poiPosition, 
             st_geomfromgeojson( 
@@ -54,7 +54,7 @@ class ActivityService {
         .andWhere('activity.expires > NOW()')
         .getCount();
 
-      groupedZones.push({ area: area, count: activities });
+      groupedZones.push({ area: area.coordinates, count: activities });
     }
 
     return groupedZones;
