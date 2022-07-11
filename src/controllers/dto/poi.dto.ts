@@ -44,6 +44,8 @@ export interface POIResponseDTO {
 export class POIItemDTO {
   position: IPosition;
   poi: POIResponseDTO;
+  distance: number;
+  duration: number;
 }
 
 export const fromPOI = (poi: POI): POIResponseDTO => ({

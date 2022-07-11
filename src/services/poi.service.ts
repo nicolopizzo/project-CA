@@ -13,6 +13,7 @@ import { POI } from '../models/poi.model';
 import { ActivityRepository } from '../repositories/activity.repository';
 import { POIRepository } from '../repositories/poi.repository';
 import { neighborhoods } from '../utils/area.util';
+import axios from 'axios';
 
 class POIService {
   public async findOptimalPOI(
@@ -37,9 +38,21 @@ class POIService {
         .orderBy(orderBy)
         .getOne();
 
+      // TODO: invoke API for destination summary
       if (poi) {
+        const apiKey =
+          '5b3ce3597851110001cf62482373cf62c19641129be7b4b1729346ac';
+        const directionsAPI = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${longitude},${latitude}&end=${poi.position.coordinates[0]},${poi.position.coordinates[1]}`;
+        const data = await (await axios.get(directionsAPI)).data;
+        const { distance, duration } = data.features[0].properties.summary; //distance in meters, duration in seconds
+
         const responsePoi = fromPOI(poi);
-        returnedPois.items.push({ poi: responsePoi, position });
+        returnedPois.items.push({
+          poi: responsePoi,
+          position,
+          distance,
+          duration,
+        });
 
         // Save activity for admin frontend heatmap
         const timestamp = new Date();
