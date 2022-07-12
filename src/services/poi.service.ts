@@ -32,7 +32,7 @@ class POIService {
 
       const poi = await POIRepository.createQueryBuilder('poi')
         .select(['poi'])
-        .where(`poi.rank > ${info.minRank}`)
+        .where(`poi.rank >= ${info.minRank}`)
         .andWhere(`poi.type = ${formattedType}`)
         .andWhere(`poi.active = true`) // Restituisco solo i POI abilitati dall'amministratore
         .orderBy(orderBy)
