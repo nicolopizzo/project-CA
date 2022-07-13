@@ -76,7 +76,6 @@ class ActivityService {
     startTime: Date,
     endTime: Date
   ): Promise<Cluster[] | undefined> {
-    // TODO: where clause for temporal window
     let intervalClause = toClause(startTime, endTime);
 
     const grouped = await ActivityRepository.createQueryBuilder('activity')
@@ -105,7 +104,6 @@ class ActivityService {
     startTime: Date,
     endTime: Date
   ): Promise<Cluster[] | undefined> {
-    // const activities = await ActivityRepository;
     let intervalClause = toClause(startTime, endTime);
     const activitiesCount = await ActivityRepository.createQueryBuilder(
       'activity'

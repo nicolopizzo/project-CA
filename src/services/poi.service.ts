@@ -7,6 +7,7 @@ import {
   POIZoneDTO,
   fromPOI,
   UpdatePOIDto,
+  POIItemDTO,
 } from '../controllers/dto/poi.dto';
 import { Activity } from '../models/activity.model';
 import { POI } from '../models/poi.model';
@@ -22,6 +23,7 @@ class POIService {
     let returnedPois: OptimalPOIResponseDTO = { items: [] };
 
     const formattedType = `'${info.type}'::public."poi_type_enum"`;
+    // console.log(info.positions);
     for (let position of info.positions) {
       const { latitude, longitude } = position;
 
@@ -38,21 +40,32 @@ class POIService {
         .orderBy(orderBy)
         .getOne();
 
-      // TODO: invoke API for destination summary
       if (poi) {
+        // const apiKey = '';
         const apiKey =
           '5b3ce3597851110001cf62482373cf62c19641129be7b4b1729346ac';
         const directionsAPI = `https://api.openrouteservice.org/v2/directions/foot-walking?api_key=${apiKey}&start=${longitude},${latitude}&end=${poi.position.coordinates[0]},${poi.position.coordinates[1]}`;
-        const data = await (await axios.get(directionsAPI)).data;
-        const { distance, duration } = data.features[0].properties.summary; //distance in meters, duration in seconds
 
         const responsePoi = fromPOI(poi);
-        returnedPois.items.push({
-          poi: responsePoi,
-          position,
-          distance,
-          duration,
-        });
+        let newPOI: POIItemDTO;
+        try {
+          const data = await (await axios.get(directionsAPI)).data;
+          const { distance, duration } = data.features[0].properties.summary; //distance in meters, duration in seconds
+          newPOI = {
+            poi: responsePoi,
+            position,
+            distance,
+            duration,
+          };
+          returnedPois.items.push(newPOI);
+        } catch (e: any) {
+          // console.log('error:', e.response.data.error);
+          newPOI = {
+            poi: responsePoi,
+            position,
+          };
+          returnedPois.items.push(newPOI);
+        }
 
         // Save activity for admin frontend heatmap
         const timestamp = new Date();
@@ -119,26 +132,6 @@ class POIService {
 
   async findAll(): Promise<POI[]> {
     return POIRepository.find();
-  }
-
-  async enable(id: number): Promise<POI | undefined> {
-    const foundPOI = await POIRepository.findOneBy({ id });
-    if (foundPOI === null) {
-      return undefined;
-    }
-
-    foundPOI.active = true;
-    return POIRepository.save(foundPOI);
-  }
-
-  async disable(id: number): Promise<POI | undefined> {
-    const foundPOI = await POIRepository.findOneBy({ id });
-    if (foundPOI === null) {
-      return undefined;
-    }
-
-    foundPOI.active = false;
-    return POIRepository.save(foundPOI);
   }
 
   async update(id: number, poi: UpdatePOIDto): Promise<POI | undefined> {
