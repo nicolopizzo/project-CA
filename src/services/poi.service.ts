@@ -23,7 +23,6 @@ class POIService {
     let returnedPois: OptimalPOIResponseDTO = { items: [] };
 
     const formattedType = `'${info.type}'::public."poi_type_enum"`;
-    // console.log(info.positions);
     for (let position of info.positions) {
       const { latitude, longitude } = position;
 
@@ -59,7 +58,6 @@ class POIService {
           };
           returnedPois.items.push(newPOI);
         } catch (e: any) {
-          // console.log('error:', e.response.data.error);
           newPOI = {
             poi: responsePoi,
             position,
